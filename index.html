@@ -206,9 +206,6 @@ function displayMatches(results) {
     if (results.matches.length === 0 && results.mismatches.length === 0) {
         resultsDiv.textContent = 'No significant results to display.';
     }
-}
-
-
     // Header for Mismatches
     if (results.mismatches.length > 0) {
         const mismatchHeader = document.createElement('h3');
