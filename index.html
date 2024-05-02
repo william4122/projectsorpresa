@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>JSON Input and Matching Interface</title>
+    <title>Suppression Surprise!</title>
+    <link rel="icon" href="/NyanCat.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
         body {
@@ -140,6 +141,7 @@ function displayMatches(results) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = ''; // Clear previous results
 
+    // Header for Matches
     if (results.matches.length > 0) {
         const matchHeader = document.createElement('h3');
         matchHeader.textContent = "Matches found:";
@@ -147,20 +149,22 @@ function displayMatches(results) {
 
         results.matches.forEach(match => {
             const matchPara = document.createElement('p');
+            matchPara.className = 'match'; // Use the class for styling
             matchPara.innerHTML = `<strong>${match.field}</strong>: Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
             resultsDiv.appendChild(matchPara);
         });
     }
 
+    // Header for Mismatches
     if (results.mismatches.length > 0) {
         const mismatchHeader = document.createElement('h3');
         mismatchHeader.textContent = "Suppression failed due to:";
-        mismatchHeader.style.color = 'red';  // Make the header red
+        mismatchHeader.style.color = 'red';  // Optionally make the header red
         resultsDiv.appendChild(mismatchHeader);
 
         results.mismatches.forEach(mismatch => {
             const mismatchPara = document.createElement('p');
-            mismatchPara.style.color = 'red';  // Make mismatch details red
+            mismatchPara.className = 'mismatch'; // Use the class for styling
             mismatchPara.innerHTML = `<strong>${mismatch.field}</strong>: ${mismatch.reason}`;
             resultsDiv.appendChild(mismatchPara);
         });
