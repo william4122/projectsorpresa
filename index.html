@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title>Sorpresa!</title>
-    <link rel="icon" href="https://github.com/william4122/projectsorpresa/blob/b89edf8e345e44e73d9d6e36b2c632e1481e16c2/NyanCat.ico" type="image/x-icon">
+    <link rel="icon" href="/NyanCat.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
         body {
@@ -52,7 +52,7 @@
     line-height: 1.4;
     }
 
-/* Optionally, you might want to add specific styles for match and mismatch */
+/*styles for match and mismatch */
 .match, .mismatch {
     padding: 5px;
     border-radius: 5px;
@@ -81,7 +81,7 @@
         <div id="results"></div> <!-- Added this line for displaying results -->
     </main>
     <script>
-        // Initialize Ace editor for Alert Data
+        // Step1: Initialize Ace editor for Alert Data
         var alertEditor = ace.edit("alertEditor");
         alertEditor.setTheme("ace/theme/monokai");
         alertEditor.session.setMode("ace/mode/json");
@@ -107,8 +107,6 @@
         alert('Invalid JSON: ' + e.message);
     }
 }
-
-        
         function findMatches(alertData, ruleData) {
     let results = {
         matches: [],
