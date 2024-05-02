@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title>Sorpresa!</title>
-    <link rel="icon" href="<link rel="icon" href="https://william4122.github.io/NyanCat.ico" type="image/x-icon">    " type="image/x-icon">
+    <link rel="icon" href="/NyanCat.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
         body {
@@ -81,101 +81,116 @@
         <div id="results"></div> <!-- Added this line for displaying results -->
     </main>
     <script>
-    // Initialize Ace editor for Alert Data
-    var alertEditor = ace.edit("alertEditor");
-    alertEditor.setTheme("ace/theme/monokai");
-    alertEditor.session.setMode("ace/mode/json");
+        // Step1: Initialize Ace editor for Alert Data
+        var alertEditor = ace.edit("alertEditor");
+        alertEditor.setTheme("ace/theme/monokai");
+        alertEditor.session.setMode("ace/mode/json");
+    
+        // Initialize Ace editor for Suppression Rule
+        var ruleEditor = ace.edit("ruleEditor");
+        ruleEditor.setTheme("ace/theme/monokai");
+        ruleEditor.session.setMode("ace/mode/json");
+    
+        function processData() {
+    var alertData, ruleData;
+    try {
+        alertData = JSON.parse(alertEditor.getValue());
+        ruleData = JSON.parse(ruleEditor.getValue());
 
-    // Initialize Ace editor for Suppression Rule
-    var ruleEditor = ace.edit("ruleEditor");
-    ruleEditor.setTheme("ace/theme/monokai");
-    ruleEditor.session.setMode("ace/mode/json");
+        const results = findMatches(alertData, ruleData);
+        displayMatches(results, ruleData); // Pass ruleData as well
 
-    // Button to trigger validation
-    document.querySelector('button').addEventListener('click', processData);
-
-    function processData() {
-        var alertData, ruleData;
-        try {
-            alertData = JSON.parse(alertEditor.getValue());
-            ruleData = JSON.parse(ruleEditor.getValue());
-
-            const results = findMatches(alertData, ruleData);
-            displayMatches(results, ruleData); // Pass ruleData as well
-
-            console.log("Alert Data:", alertData);
-            console.log("Rule Data:", ruleData);
-        } catch (e) {
-            alert('Invalid JSON: ' + e.message);
-        }
+        console.log("Alert Data:", alertData);
+        console.log("Rule Data:", ruleData);
+        alert('Processing complete. Check console for details.');
+    } catch (e) {
+        alert('Invalid JSON: ' + e.message);
     }
-
-    function findMatches(alertData, ruleData) {
-        let results = {
-            matches: [],
-            mismatches: []
-        };
-        const metadata = ruleData.metadata;
-        for (const key in metadata) {
-            if (metadata[key].active) {
-                if (alertData.hasOwnProperty(key) && alertData[key] == metadata[key].value) {
-                    results.matches.push({
-                        field: key,
-                        alertValue: alertData[key],
-                        ruleValue: metadata[key].value
-                    });
-                } else {
-                    let reason = alertData.hasOwnProperty(key) ? 
-                                 `expected ${metadata[key].value} but found ${alertData[key]}` : 
-                                 `expected ${metadata[key].value} but field not present in alert data`;
-                    results.mismatches.push({
-                        field: key,
-                        reason: reason
-                    });
-                }
+}
+        function findMatches(alertData, ruleData) {
+    let results = {
+        matches: [],
+        mismatches: []
+    };
+    const metadata = ruleData.metadata;
+    for (const key in metadata) {
+        if (metadata[key].active) {
+            if (alertData.hasOwnProperty(key) && alertData[key] == metadata[key].value) {
+                results.matches.push({
+                    field: key, 
+                    alertValue: alertData[key], 
+                    ruleValue: metadata[key].value
+                });
+            } else {
+                let reason = alertData.hasOwnProperty(key) ? 
+                             `expected ${metadata[key].value} but found ${alertData[key]}` : 
+                             `expected ${metadata[key].value} but field not present in alert data`;
+                results.mismatches.push({
+                    field: key, 
+                    reason: reason
+                });
             }
         }
-        return results;
+    }
+    return results;
+}
+
+function displayMatches(results, ruleData) {
+    const resultsDiv = document.getElementById('results');
+    const ruleName = ruleData.name;  // Access the suppression rule name
+    resultsDiv.innerHTML = '';
+
+    // Check for mismatches
+    if (results.mismatches.length > 0) {
+        const mismatchHeader = document.createElement('h3');
+        mismatchHeader.textContent = `"${ruleName}" failed because:`; // Use rule name in the header
+        mismatchHeader.style.color = 'red';
+        resultsDiv.appendChild(mismatchHeader);
+
+        results.mismatches.forEach(mismatch => {
+            const mismatchPara = document.createElement('p');
+            mismatchPara.className = 'mismatch';
+            mismatchPara.innerHTML = `<strong>${mismatch.field}</strong>: ${mismatch.reason}`;
+            resultsDiv.appendChild(mismatchPara);
+        });
     }
 
-    function displayMatches(results) {
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '';
+    // Check for matches
+    if (results.matches.length > 0) {
+        const matchHeader = document.createElement('h3');
+        matchHeader.textContent = "Matches found:";
+        resultsDiv.appendChild(matchHeader);
 
-        if (results.mismatches.length > 0) {
-            const mismatchHeader = document.createElement('h3');
-            mismatchHeader.textContent = "Suppression failed due to:";
-            mismatchHeader.style.color = 'red';
-            resultsDiv.appendChild(mismatchHeader);
-
-            results.mismatches.forEach(mismatch => {
-                const mismatchPara = document.createElement('p');
-                mismatchPara.className = 'mismatch';
-                const fieldName = fieldMappings[mismatch.field] || mismatch.field;
-                mismatchPara.innerHTML = `<strong>${fieldName}</strong>: ${mismatch.reason}`;
-                resultsDiv.appendChild(mismatchPara);
-            });
-        }
-
-        if (results.matches.length > 0) {
-            const matchHeader = document.createElement('h3');
-            matchHeader.textContent = "Matches found:";
-            resultsDiv.appendChild(matchHeader);
-
-            results.matches.forEach(match => {
-                const matchPara = document.createElement('p');
-                matchPara.className = 'match';
-                const fieldName = fieldMappings[match.field] || match.field;
-                matchPara.innerHTML = `Match found: <strong>${fieldName}</strong> - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
-                resultsDiv.appendChild(matchPara);
-            });
-        }
-
-        if (results.matches.length === 0 && results.mismatches.length === 0) {
-            resultsDiv.textContent = 'No significant results to display.';
-        }
+        results.matches.forEach(match => {
+            const matchPara = document.createElement('p');
+            matchPara.className = 'match';
+            matchPara.innerHTML = `Match found: <strong>${match.field}</strong> - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+            resultsDiv.appendChild(matchPara);
+        });
     }
-;
-    </script>   
+
+    if (results.matches.length === 0 && results.mismatches.length === 0) {
+        resultsDiv.textContent = 'No significant results to display.';
+    }
+}
+
+
+    // Header for Mismatches
+    if (results.mismatches.length > 0) {
+        const mismatchHeader = document.createElement('h3');
+        mismatchHeader.textContent = "Suppression failed due to:";
+        mismatchHeader.style.color = 'red';  // Optionally make the header red
+        resultsDiv.appendChild(mismatchHeader);
+
+        results.mismatches.forEach(mismatch => {
+            const mismatchPara = document.createElement('p');
+            mismatchPara.className = 'mismatch'; // Use the class for styling
+            mismatchPara.innerHTML = `<strong>${mismatch.field}</strong>: ${mismatch.reason}`;
+            resultsDiv.appendChild(mismatchPara);
+        });
+    } else if (results.matches.length === 0) {
+        resultsDiv.textContent = 'No matches found.';
+    }
+    </script>    
 </body>
 </html>
