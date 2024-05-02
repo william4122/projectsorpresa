@@ -81,6 +81,7 @@
         <div id="results"></div> <!-- Added this line for displaying results -->
     </main>
     <script>
+document.addEventListener('DOMContentLoaded', function () {
         // Step1: Initialize Ace editor for Alert Data
         var alertEditor = ace.edit("alertEditor");
         alertEditor.setTheme("ace/theme/monokai");
@@ -222,6 +223,7 @@ function displayMatches(results) {
     } else if (results.matches.length === 0) {
         resultsDiv.textContent = 'No matches found.';
     }
+});
     </script>    
 </body>
 </html>
