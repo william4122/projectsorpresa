@@ -41,6 +41,30 @@
         button:hover {
             background-color: #45a049;
         }
+        h3 {
+    padding: 8px 0;
+    font-size: 18px;
+    }
+    p {
+    margin: 5px 0;
+    font-size: 16px;
+    line-height: 1.4;
+    }
+
+/* Optionally, you might want to add specific styles for match and mismatch */
+.match, .mismatch {
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.match {
+    background-color: #f0fff0; /* light green background for matches */
+}
+
+.mismatch {
+    background-color: #fff0f0; /* light red background for mismatches */
+    color: #d00; /* darker red text for emphasis */
+}
     </style>
 </head>
 <body>
@@ -123,7 +147,7 @@ function displayMatches(results) {
 
         results.matches.forEach(match => {
             const matchPara = document.createElement('p');
-            matchPara.textContent = `${match.field}: Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+            matchPara.innerHTML = `<strong>${match.field}</strong>: Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
             resultsDiv.appendChild(matchPara);
         });
     }
@@ -131,11 +155,13 @@ function displayMatches(results) {
     if (results.mismatches.length > 0) {
         const mismatchHeader = document.createElement('h3');
         mismatchHeader.textContent = "Suppression failed due to:";
+        mismatchHeader.style.color = 'red';  // Make the header red
         resultsDiv.appendChild(mismatchHeader);
 
         results.mismatches.forEach(mismatch => {
             const mismatchPara = document.createElement('p');
-            mismatchPara.textContent = `${mismatch.field}: ${mismatch.reason}`;
+            mismatchPara.style.color = 'red';  // Make mismatch details red
+            mismatchPara.innerHTML = `<strong>${mismatch.field}</strong>: ${mismatch.reason}`;
             resultsDiv.appendChild(mismatchPara);
         });
     } else if (results.matches.length === 0) {
