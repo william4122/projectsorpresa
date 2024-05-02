@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>RK-Restoration</title>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <title>JSON Matching Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,27 +18,15 @@
         }
         main {
             padding: 20px;
-            max-width: 800px;
             margin: 20px auto;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
         }
-        label, button, textarea, table {
-            display: block;
-            width: 100%;
-        }
-        label {
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        textarea {
-            padding: 8px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            height: 150px;
+        #editor {
+            height: 200px;
         }
         button {
             background-color: #4caf50;
@@ -49,90 +35,37 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            margin-bottom: 20px;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #45a049;
         }
-        th, td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 12px;
-        }
-        th {
-            background-color: #4caf50;
-            color: #fff;
-        }
-        td {
-            background-color: #f9f9f9;
-        }
     </style>
 </head>
 <body>
-    <h1>EDR Reg Key Restoration</h1>
+    <h1>JSON Input and Matching</h1>
     <main>
-        <label for="file1">Targets:</label>
-        <textarea id="file1" placeholder="Paste your GET / Targets here"></textarea>
-
-        <label for="file2">RegKey:</label>
-        <textarea id="file2" placeholder="Paste your GET / UserActivities Here"></textarea>
-
+        <label for="editor">Enter JSON Data:</label>
+        <div id="editor"></div>
         <button onclick="matchJson()">Match JSON</button>
-
-        <h2>Matches:</h2>
-        <table id="matches" class="dataTable">
-            <thead>
-                <tr>
-                    <th>Location Name</th>
-                    <th>Registration Key</th>
-                    <th>Location ID</th>
-                </tr>
-            </thead>
-            <tbody id="matchesBody"></tbody>
-        </table>
     </main>
 
     <script>
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/json");
+
         function matchJson() {
-            const file1Input = document.getElementById('file1');
-            const file2Input = document.getElementById('file2');
-
-            if (!file1Input.value.trim() || !file2Input.value.trim()) {
-                alert('Please paste JSON into both boxes');
-                return;
-            }
-
+            var json;
             try {
-                const file1Data = JSON.parse(file1Input.value);
-                const file2Data = JSON.parse(file2Input.value);
-
-                displayMatches(file1Data, file2Data);
-            } catch (error) {
-                alert('Error parsing JSON. Please check your input.');
+                json = JSON.parse(editor.getValue());
+                // Handle your JSON matching and processing logic here
+                console.log("Processed JSON:", json);
+                alert('JSON is valid and processed.');
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
             }
         }
-
-        function displayMatches(file1Data, file2Data) {
-            // Implement the matching logic according to your application requirements
-            const matchesBody = document.getElementById('matchesBody');
-            matchesBody.innerHTML = ''; // Clear existing rows
-
-            // Example: Match by some ID and display results
-            file1Data.forEach(item1 => {
-                file2Data.forEach(item2 => {
-                    if (item1.id === item2.relatedId) { // Example condition
-                        const row = matchesBody.insertRow();
-                        row.insertCell(0).textContent = item1.locationName;
-                        row.insertCell(1).textContent = item2.regKey;
-                        row.insertCell(2).textContent = item1.locationId;
-                    }
-                });
-            });
-        }
-
-        $(document).ready(function() {
-            $('#matches').DataTable();
-        });
     </script>
 </body>
 </html>
