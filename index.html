@@ -83,31 +83,51 @@
                 alert('Invalid JSON: ' + e.message);
             }
         }
-    
         function findMatches(alertData, ruleData) {
-            let matches = [];
-            const metadata = ruleData.metadata;
-            for (const key in metadata) {
-                if (metadata[key].active && alertData[key] && alertData[key] == metadata[key].value) {
-                    matches.push({field: key, alertValue: alertData[key], ruleValue: metadata[key].value});
-                }
-            }
-            return matches;
-        }
-    
-        function displayMatches(matches) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = ''; // Clear previous results
-            if (matches.length > 0) {
-                matches.forEach(match => {
-                    const para = document.createElement('p');
-                    para.textContent = `Match found: ${match.field} - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
-                    resultsDiv.appendChild(para);
-                });
+    let results = {
+        matches: [],
+        mismatches: []
+    };
+    const metadata = ruleData.metadata;
+    for (const key in metadata) {
+        if (metadata[key].active) {
+            if (alertData.hasOwnProperty(key) && alertData[key] == metadata[key].value) {
+                results.matches.push({ field: key, alertValue: alertData[key], ruleValue: metadata[key].value });
             } else {
-                resultsDiv.textContent = 'No matches found.';
+                let reason = alertData.hasOwnProperty(key) ? 
+                             `expected ${metadata[key].value} but found ${alertData[key]}` : 
+                             "field not present in alert data";
+                results.mismatches.push({ field: key, reason: reason });
             }
         }
+    }
+    return results;
+}   
+        function displayMatches(results) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = ''; // Clear previous results
+
+    if (results.matches.length > 0) {
+        results.matches.forEach(match => {
+            const matchPara = document.createElement('p');
+            matchPara.textContent = `Match found: ${match.field} - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+            resultsDiv.appendChild(matchPara);
+        });
+    }
+
+    if (results.mismatches.length > 0) {
+        const mismatchHeader = document.createElement('h3');
+        mismatchHeader.textContent = "Suppression failed due to:";
+        resultsDiv.appendChild(mismatchHeader);
+        results.mismatches.forEach(mismatch => {
+            const mismatchPara = document.createElement('p');
+            mismatchPara.textContent = `${mismatch.field}: ${mismatch.reason}`;
+            resultsDiv.appendChild(mismatchPara);
+        });
+    } else if (results.matches.length === 0) {
+        resultsDiv.textContent = 'No matches found.';
+    }
+}
     </script>    
 </body>
 </html>
