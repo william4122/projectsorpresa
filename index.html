@@ -54,31 +54,59 @@
 
         <button onclick="processData()">Match JSON</button>
     </main>
-
     <script>
         // Initialize Ace editor for Alert Data
         var alertEditor = ace.edit("alertEditor");
         alertEditor.setTheme("ace/theme/monokai");
         alertEditor.session.setMode("ace/mode/json");
-
+    
         // Initialize Ace editor for Suppression Rule
         var ruleEditor = ace.edit("ruleEditor");
         ruleEditor.setTheme("ace/theme/monokai");
         ruleEditor.session.setMode("ace/mode/json");
-
+    
         function processData() {
             var alertData, ruleData;
             try {
                 alertData = JSON.parse(alertEditor.getValue());
                 ruleData = JSON.parse(ruleEditor.getValue());
-                // Here you can add the logic to match JSON data or further process it
+    
+                // Extract active fields and compare
+                const matches = findMatches(alertData, ruleData);
+                displayMatches(matches);
+    
                 console.log("Alert Data:", alertData);
                 console.log("Rule Data:", ruleData);
-                alert('Both JSONs are valid and processed.');
+                alert('Processing complete. Check console for details.');
             } catch (e) {
                 alert('Invalid JSON: ' + e.message);
             }
         }
-    </script>
+    
+        function findMatches(alertData, ruleData) {
+            let matches = [];
+            const metadata = ruleData.metadata;
+            for (const key in metadata) {
+                if (metadata[key].active && alertData[key] && alertData[key] == metadata[key].value) {
+                    matches.push({field: key, alertValue: alertData[key], ruleValue: metadata[key].value});
+                }
+            }
+            return matches;
+        }
+    
+        function displayMatches(matches) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // Clear previous results
+            if (matches.length > 0) {
+                matches.forEach(match => {
+                    const para = document.createElement('p');
+                    para.textContent = `Match found: ${match.field} - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+                    resultsDiv.appendChild(para);
+                });
+            } else {
+                resultsDiv.textContent = 'No matches found.';
+            }
+        }
+    </script>    
 </body>
 </html>
