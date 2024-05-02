@@ -66,19 +66,6 @@
     background-color: #fff0f0; /* light red background for mismatches */
     color: #d00; /* darker red text for emphasis */
 }
-.confetti {
-    position: fixed;
-    width: 10px;
-    height: 10px;
-    background-color: #ffcc00;
-    z-index: 1000;
-    animation: confetti-animation 1.5s linear infinite;
-}
-
-@keyframes confetti-animation {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
-}
     </style>
 </head>
 <body>
@@ -149,34 +136,26 @@
     }
     return results;
 }
-function createConfetti() {
-    const confettiCount = 100;
-    const confetti = document.createElement('div');
-    document.body.appendChild(confetti);
 
-    for (let i = 0; i < confettiCount; i++) {
-        let confetto = document.createElement('div');
-        confetto.classList.add('confetti');
-        confetto.style.left = `${Math.random() * window.innerWidth}px`;
-        confetto.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
-        confetto.style.transform = `scale(${Math.random()})`;
-        confetto.style.animationDuration = `${0.5 + Math.random() * 1.5}s`;
-
-        confetti.appendChild(confetto);
-
-        setTimeout(() => {
-            confetto.remove();
-        }, 1800);
-    }
-}
 function displayMatches(results) {
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '';
+    resultsDiv.innerHTML = ''; // Clear previous results
 
-    if (results.mismatches.length > 0) {
-        createConfetti(); // Trigger confetti when there are mismatches
-        // Rest of your display logic for mismatches
-        // Header for Mismatches
+    // Header for Matches
+    if (results.matches.length > 0) {
+        const matchHeader = document.createElement('h3');
+        matchHeader.textContent = "Matches found:";
+        resultsDiv.appendChild(matchHeader);
+
+        results.matches.forEach(match => {
+            const matchPara = document.createElement('p');
+            matchPara.className = 'match'; // Use the class for styling
+            matchPara.innerHTML = `<strong>${match.field}</strong>: Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+            resultsDiv.appendChild(matchPara);
+        });
+    }
+
+    // Header for Mismatches
     if (results.mismatches.length > 0) {
         const mismatchHeader = document.createElement('h3');
         mismatchHeader.textContent = "Suppression failed due to:";
@@ -193,21 +172,7 @@ function displayMatches(results) {
         resultsDiv.textContent = 'No matches found.';
     }
 }
-    }
-    // Rest of your display logic for matches
-    // Header for Matches
-    if (results.matches.length > 0) {
-        const matchHeader = document.createElement('h3');
-        matchHeader.textContent = "Matches found:";
-        resultsDiv.appendChild(matchHeader);
 
-        results.matches.forEach(match => {
-            const matchPara = document.createElement('p');
-            matchPara.className = 'match'; // Use the class for styling
-            matchPara.innerHTML = `<strong>${match.field}</strong>: Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
-            resultsDiv.appendChild(matchPara);
-        });
-    }
-</script>
+    </script>    
 </body>
 </html>
