@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>JSON Matching Interface</title>
+    <title>JSON Input and Matching Interface</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
         body {
@@ -25,8 +25,9 @@
             width: 90%;
             max-width: 800px;
         }
-        #editor {
+        .editor {
             height: 200px;
+            margin-bottom: 20px;
         }
         button {
             background-color: #4caf50;
@@ -43,25 +44,37 @@
     </style>
 </head>
 <body>
-    <h1>JSON Input and Matching</h1>
+    <h1>JSON Input for Alert and Suppression Data</h1>
     <main>
-        <label for="editor">Enter JSON Data:</label>
-        <div id="editor"></div>
-        <button onclick="matchJson()">Match JSON</button>
+        <label for="alertEditor">Alert Data JSON:</label>
+        <div id="alertEditor" class="editor"></div>
+
+        <label for="ruleEditor">Suppression Rule JSON:</label>
+        <div id="ruleEditor" class="editor"></div>
+
+        <button onclick="processData()">Match JSON</button>
     </main>
 
     <script>
-        var editor = ace.edit("editor");
-        editor.setTheme("ace/theme/monokai");
-        editor.session.setMode("ace/mode/json");
+        // Initialize Ace editor for Alert Data
+        var alertEditor = ace.edit("alertEditor");
+        alertEditor.setTheme("ace/theme/monokai");
+        alertEditor.session.setMode("ace/mode/json");
 
-        function matchJson() {
-            var json;
+        // Initialize Ace editor for Suppression Rule
+        var ruleEditor = ace.edit("ruleEditor");
+        ruleEditor.setTheme("ace/theme/monokai");
+        ruleEditor.session.setMode("ace/mode/json");
+
+        function processData() {
+            var alertData, ruleData;
             try {
-                json = JSON.parse(editor.getValue());
-                // Handle your JSON matching and processing logic here
-                console.log("Processed JSON:", json);
-                alert('JSON is valid and processed.');
+                alertData = JSON.parse(alertEditor.getValue());
+                ruleData = JSON.parse(ruleEditor.getValue());
+                // Here you can add the logic to match JSON data or further process it
+                console.log("Alert Data:", alertData);
+                console.log("Rule Data:", ruleData);
+                alert('Both JSONs are valid and processed.');
             } catch (e) {
                 alert('Invalid JSON: ' + e.message);
             }
