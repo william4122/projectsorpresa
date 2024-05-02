@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title>Sorpresa!</title>
-    <link rel="icon" href="/NyanCat.ico" type="image/x-icon">
+    <link rel="icon" href="Nyan Cat.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
         body {
@@ -92,22 +92,22 @@
         ruleEditor.session.setMode("ace/mode/json");
     
         function processData() {
-            var alertData, ruleData;
-            try {
-                alertData = JSON.parse(alertEditor.getValue());
-                ruleData = JSON.parse(ruleEditor.getValue());
-    
-                // Extract active fields and compare
-                const matches = findMatches(alertData, ruleData);
-                displayMatches(matches);
-    
-                console.log("Alert Data:", alertData);
-                console.log("Rule Data:", ruleData);
-                alert('Processing complete. Check console for details.');
-            } catch (e) {
-                alert('Invalid JSON: ' + e.message);
-            }
-        }
+    var alertData, ruleData;
+    try {
+        alertData = JSON.parse(alertEditor.getValue());
+        ruleData = JSON.parse(ruleEditor.getValue());
+
+        const results = findMatches(alertData, ruleData);
+        displayMatches(results, ruleData); // Pass ruleData as well
+
+        console.log("Alert Data:", alertData);
+        console.log("Rule Data:", ruleData);
+        alert('Processing complete. Check console for details.');
+    } catch (e) {
+        alert('Invalid JSON: ' + e.message);
+    }
+}
+
         
         function findMatches(alertData, ruleData) {
     let results = {
@@ -137,11 +137,27 @@
     return results;
 }
 
-function displayMatches(results) {
+function displayMatches(results, ruleData) {
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = ''; // Clear previous results
+    const ruleName = ruleData.name;  // Access the suppression rule name
+    resultsDiv.innerHTML = '';
 
-    // Header for Matches
+    // Check for mismatches
+    if (results.mismatches.length > 0) {
+        const mismatchHeader = document.createElement('h3');
+        mismatchHeader.textContent = `"${ruleName}" failed because:`; // Use rule name in the header
+        mismatchHeader.style.color = 'red';
+        resultsDiv.appendChild(mismatchHeader);
+
+        results.mismatches.forEach(mismatch => {
+            const mismatchPara = document.createElement('p');
+            mismatchPara.className = 'mismatch';
+            mismatchPara.innerHTML = `<strong>${mismatch.field}</strong>: ${mismatch.reason}`;
+            resultsDiv.appendChild(mismatchPara);
+        });
+    }
+
+    // Check for matches
     if (results.matches.length > 0) {
         const matchHeader = document.createElement('h3');
         matchHeader.textContent = "Matches found:";
@@ -149,11 +165,17 @@ function displayMatches(results) {
 
         results.matches.forEach(match => {
             const matchPara = document.createElement('p');
-            matchPara.className = 'match'; // Use the class for styling
-            matchPara.innerHTML = `<strong>${match.field}</strong>: Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+            matchPara.className = 'match';
+            matchPara.innerHTML = `Match found: <strong>${match.field}</strong> - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
             resultsDiv.appendChild(matchPara);
         });
     }
+
+    if (results.matches.length === 0 && results.mismatches.length === 0) {
+        resultsDiv.textContent = 'No significant results to display.';
+    }
+}
+
 
     // Header for Mismatches
     if (results.mismatches.length > 0) {
