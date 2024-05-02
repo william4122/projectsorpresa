@@ -83,6 +83,7 @@
                 alert('Invalid JSON: ' + e.message);
             }
         }
+        
         function findMatches(alertData, ruleData) {
     let results = {
         matches: [],
@@ -92,25 +93,37 @@
     for (const key in metadata) {
         if (metadata[key].active) {
             if (alertData.hasOwnProperty(key) && alertData[key] == metadata[key].value) {
-                results.matches.push({ field: key, alertValue: alertData[key], ruleValue: metadata[key].value });
+                results.matches.push({
+                    field: key, 
+                    alertValue: alertData[key], 
+                    ruleValue: metadata[key].value
+                });
             } else {
                 let reason = alertData.hasOwnProperty(key) ? 
                              `expected ${metadata[key].value} but found ${alertData[key]}` : 
-                             "field not present in alert data";
-                results.mismatches.push({ field: key, reason: reason });
+                             `expected ${metadata[key].value} but field not present in alert data`;
+                results.mismatches.push({
+                    field: key, 
+                    reason: reason
+                });
             }
         }
     }
     return results;
-}   
-        function displayMatches(results) {
+}
+
+function displayMatches(results) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = ''; // Clear previous results
 
     if (results.matches.length > 0) {
+        const matchHeader = document.createElement('h3');
+        matchHeader.textContent = "Matches found:";
+        resultsDiv.appendChild(matchHeader);
+
         results.matches.forEach(match => {
             const matchPara = document.createElement('p');
-            matchPara.textContent = `Match found: ${match.field} - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+            matchPara.textContent = `${match.field}: Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
             resultsDiv.appendChild(matchPara);
         });
     }
@@ -119,6 +132,7 @@
         const mismatchHeader = document.createElement('h3');
         mismatchHeader.textContent = "Suppression failed due to:";
         resultsDiv.appendChild(mismatchHeader);
+
         results.mismatches.forEach(mismatch => {
             const mismatchPara = document.createElement('p');
             mismatchPara.textContent = `${mismatch.field}: ${mismatch.reason}`;
@@ -128,6 +142,7 @@
         resultsDiv.textContent = 'No matches found.';
     }
 }
+
     </script>    
 </body>
 </html>
