@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Sorpresa!</title>
-    <link rel="icon" href="https://github.com/edr-support/projectsorpresa/NyanCat.ico" type="image/x-icon">
+    <link rel="icon" href="NyanCat.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
-        /* Add your styles here */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -57,61 +57,86 @@
             border-radius: 5px;
         }
         .match {
-            background-color: #f0fff0;
+            background-color: #f0fff0; /* light green background for matches */
         }
         .mismatch {
-            background-color: #fff0f0;
-            color: #d00;
+            background-color: #fff0f0; /* light red background for mismatches */
+            color: #d00; /* darker red text for emphasis */
         }
     </style>
 </head>
 <body>
     <h1>Alert Suppression Inspector</h1>
     <main>
-        <label for="apiToken">API Token:</label>
-        <input type="text" id="apiToken" placeholder="Enter API Token">
+        <label for="alertEditor">Alert Data:</label>
+        <div id="alertEditor" class="editor"></div>
 
-        <label for="alertDataUrl">Alert Data URL:</label>
-        <input type="text" id="alertDataUrl" placeholder="Enter Alert Data URL">
+        <label for="ruleEditor">Suppression Rule:</label>
+        <div id="ruleEditor" class="editor"></div>
 
-        <label for="ruleDataUrl">Suppression Rule URL:</label>
-        <input type="text" id="ruleDataUrl" placeholder="Enter Suppression Rule URL">
-
-        <button onclick="fetchData()">Fetch and Validate</button>
-
+        <button onclick="processData()">Validate</button>
         <div id="results"></div>
     </main>
     <script>
-        async function fetchData() {
-            const apiToken = document.getElementById('apiToken').value;
-            const alertDataUrl = document.getElementById('alertDataUrl').value;
-            const ruleDataUrl = document.getElementById('ruleDataUrl').value;
+        // Initialize Ace editor for Alert Data
+        var alertEditor = ace.edit("alertEditor");
+        alertEditor.setTheme("ace/theme/monokai");
+        alertEditor.session.setMode("ace/mode/json");
 
-            if (!apiToken || !alertDataUrl || !ruleDataUrl) {
-                alert('Please fill in all fields.');
-                return;
-            }
+        // Initialize Ace editor for Suppression Rule
+        var ruleEditor = ace.edit("ruleEditor");
+        ruleEditor.setTheme("ace/theme/monokai");
+        ruleEditor.session.setMode("ace/mode/json");
 
+        const fieldMappings = {
+            "ip": "IP Address",
+            "os": "Operating System",
+            "uid": "Process Owner UID",
+            "name": "Name",
+            "path": "File Path",
+            "sha1": "File SHA1",
+            "type": "Item Type",
+            "owner": "Process Owner",
+            "sha256": "File SHA256",
+            "eppType": "EPP Type",
+            "hostname": "Hostname",
+            "ruleName": "Rule Name",
+            "issuerName": "File Signature Issuer",
+            "sourceType": "Alert Type",
+            "avPositives": "AV Hits",
+            "commandLine": "Process Command Line",
+            "avThreatName": "AV Threat Name",
+            "ruleSeverity": "Severity",
+            "threatStatus": "Threat Status",
+            "targetGroupId": "Location Name",
+            "organizationId": "Organization Name",
+            "threatCategory": "Threat Category",
+            "parentProcessName": "Parent Process Name",
+            "grandParentProcessName": "Grand Parent Process Name"
+        };
+
+        function processData() {
+            var alertData, ruleData;
             try {
-                const [alertData, ruleData] = await Promise.all([
-                    fetch(alertDataUrl, {
-                        headers: { 'Authorization': `Bearer ${apiToken}` }
-                    }).then(response => response.json()),
-                    fetch(ruleDataUrl, {
-                        headers: { 'Authorization': `Bearer ${apiToken}` }
-                    }).then(response => response.json())
-                ]);
+                alertData = JSON.parse(alertEditor.getValue());
+                ruleData = JSON.parse(ruleEditor.getValue());
 
                 const results = findMatches(alertData, ruleData);
                 displayMatches(results);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                alert('Error fetching data. Check the console for details.');
+
+                console.log("Alert Data:", alertData);
+                console.log("Rule Data:", ruleData);
+                alert('Processing complete. Check console for details.');
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
             }
         }
 
         function findMatches(alertData, ruleData) {
-            let results = { matches: [], mismatches: [] };
+            let results = {
+                matches: [],
+                mismatches: []
+            };
             const metadata = ruleData.metadata;
             for (const key in metadata) {
                 if (metadata[key].active) {
@@ -130,7 +155,10 @@
                         let reason = alertData.hasOwnProperty(key) ?
                             `expected ${ruleValue} but found ${alertValue}` :
                             `expected ${ruleValue} but field not present in alert data`;
-                        results.mismatches.push({ field: key, reason: reason });
+                        results.mismatches.push({
+                            field: key,
+                            reason: reason
+                        });
                     }
                 }
             }
@@ -138,6 +166,9 @@
         }
 
         function compareValues(alertValue, ruleValue, operator, dataType) {
+            if (alertValue === undefined || ruleValue === undefined) {
+                return false;
+            }
             if (dataType === 'number') {
                 alertValue = parseFloat(alertValue);
                 ruleValue = parseFloat(ruleValue);
@@ -190,33 +221,6 @@
                 resultsDiv.textContent = 'No significant results to display.';
             }
         }
-
-        const fieldMappings = {
-            "ip": "IP Address",
-            "os": "Operating System",
-            "uid": "Process Owner UID",
-            "name": "Name",
-            "path": "File Path",
-            "sha1": "File SHA1",
-            "type": "Item Type",
-            "owner": "Process Owner",
-            "sha256": "File SHA256",
-            "eppType": "EPP Type",
-            "hostname": "Hostname",
-            "ruleName": "Rule Name",
-            "issuerName": "File Signature Issuer",
-            "sourceType": "Alert Type",
-            "avPositives": "AV Hits",
-            "commandLine": "Process Command Line",
-            "avThreatName": "AV Threat Name",
-            "ruleSeverity": "Severity",
-            "threatStatus": "Threat Status",
-            "targetGroupId": "Location Name",
-            "organizationId": "Organization Name",
-            "threatCategory": "Threat Category",
-            "parentProcessName": "Parent Process Name",
-            "grandParentProcessName": "Grand Parent Process Name"
-        };
     </script>
 </body>
 </html>
