@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Sorpresa!</title>
-    <link rel="icon" href="/NyanCat.ico" type="image/x-icon">
+    <link rel="icon" href="NyanCat.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #ffffff;
+            background-color: #f4f4f4;
         }
         h1 {
-            background-color: #006eff;
+            background-color: #333;
             color: #fff;
             padding: 20px;
             margin: 0;
@@ -20,7 +21,7 @@
         main {
             padding: 20px;
             margin: 20px auto;
-            background-color: #ffffff;
+            background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             width: 90%;
@@ -31,7 +32,7 @@
             margin-bottom: 20px;
         }
         button {
-            background-color: #006eff;
+            background-color: #2e06df;
             color: #fff;
             padding: 10px 15px;
             border: none;
@@ -43,29 +44,25 @@
             background-color: #45a049;
         }
         h3 {
-    padding: 8px 0;
-    font-size: 18px;
-    }
-    p {
-    margin: 5px 0;
-    font-size: 16px;
-    line-height: 1.4;
-    }
-
-/*styles for match and mismatch */
-.match, .mismatch {
-    padding: 5px;
-    border-radius: 5px;
-}
-
-.match {
-    background-color: #f0fff0; /* light green background for matches */
-}
-
-.mismatch {
-    background-color: #fff0f0; /* light red background for mismatches */
-    color: #d00; /* darker red text for emphasis */
-}
+            padding: 8px 0;
+            font-size: 18px;
+        }
+        p {
+            margin: 5px 0;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        .match, .mismatch {
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .match {
+            background-color: #f0fff0; /* light green background for matches */
+        }
+        .mismatch {
+            background-color: #fff0f0; /* light red background for mismatches */
+            color: #d00; /* darker red text for emphasis */
+        }
     </style>
 </head>
 <body>
@@ -78,119 +75,152 @@
         <div id="ruleEditor" class="editor"></div>
 
         <button onclick="processData()">Validate</button>
-        <div id="results"></div> <!-- Added this line for displaying results -->
+        <div id="results"></div>
     </main>
     <script>
-        // Step1: Initialize Ace editor for Alert Data
+        // Initialize Ace editor for Alert Data
         var alertEditor = ace.edit("alertEditor");
         alertEditor.setTheme("ace/theme/monokai");
         alertEditor.session.setMode("ace/mode/json");
-    
+
         // Initialize Ace editor for Suppression Rule
         var ruleEditor = ace.edit("ruleEditor");
         ruleEditor.setTheme("ace/theme/monokai");
         ruleEditor.session.setMode("ace/mode/json");
-    
+
+        const fieldMappings = {
+            "ip": "IP Address",
+            "os": "Operating System",
+            "uid": "Process Owner UID",
+            "name": "Name",
+            "path": "File Path",
+            "sha1": "File SHA1",
+            "type": "Item Type",
+            "owner": "Process Owner",
+            "sha256": "File SHA256",
+            "eppType": "EPP Type",
+            "hostname": "Hostname",
+            "ruleName": "Rule Name",
+            "issuerName": "File Signature Issuer",
+            "sourceType": "Alert Type",
+            "avPositives": "AV Hits",
+            "commandLine": "Process Command Line",
+            "avThreatName": "AV Threat Name",
+            "ruleSeverity": "Severity",
+            "threatStatus": "Threat Status",
+            "targetGroupId": "Location Name",
+            "organizationId": "Organization Name",
+            "threatCategory": "Threat Category",
+            "parentProcessName": "Parent Process Name",
+            "grandParentProcessName": "Grand Parent Process Name"
+        };
+
         function processData() {
-    var alertData, ruleData;
-    try {
-        alertData = JSON.parse(alertEditor.getValue());
-        ruleData = JSON.parse(ruleEditor.getValue());
+            var alertData, ruleData;
+            try {
+                alertData = JSON.parse(alertEditor.getValue());
+                ruleData = JSON.parse(ruleEditor.getValue());
 
-        const results = findMatches(alertData, ruleData);
-        displayMatches(results, ruleData); // Pass ruleData as well
+                const results = findMatches(alertData, ruleData);
+                displayMatches(results);
 
-        console.log("Alert Data:", alertData);
-        console.log("Rule Data:", ruleData);
-        alert('Processing complete. Check console for details.');
-    } catch (e) {
-        alert('Invalid JSON: ' + e.message);
-    }
-}
-        function findMatches(alertData, ruleData) {
-    let results = {
-        matches: [],
-        mismatches: []
-    };
-    const metadata = ruleData.metadata;
-    for (const key in metadata) {
-        if (metadata[key].active) {
-            if (alertData.hasOwnProperty(key) && alertData[key] == metadata[key].value) {
-                results.matches.push({
-                    field: key, 
-                    alertValue: alertData[key], 
-                    ruleValue: metadata[key].value
-                });
-            } else {
-                let reason = alertData.hasOwnProperty(key) ? 
-                             `expected ${metadata[key].value} but found ${alertData[key]}` : 
-                             `expected ${metadata[key].value} but field not present in alert data`;
-                results.mismatches.push({
-                    field: key, 
-                    reason: reason
-                });
+                console.log("Alert Data:", alertData);
+                console.log("Rule Data:", ruleData);
+                alert('Processing complete. Check console for details.');
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
             }
         }
-    }
-    return results;
-}
 
-function displayMatches(results, ruleData) {
-    const resultsDiv = document.getElementById('results');
-    const ruleName = ruleData.name;  // Access the suppression rule name
-    resultsDiv.innerHTML = '';
+        function findMatches(alertData, ruleData) {
+            let results = {
+                matches: [],
+                mismatches: []
+            };
+            const metadata = ruleData.metadata;
+            for (const key in metadata) {
+                if (metadata[key].active) {
+                    const alertValue = alertData[key];
+                    const ruleValue = metadata[key].value;
+                    const operator = metadata[key].operator;
+                    const dataType = metadata[key].dataType;
 
-    // Check for mismatches
-    if (results.mismatches.length > 0) {
-        const mismatchHeader = document.createElement('h3');
-        mismatchHeader.textContent = `"${ruleName}" failed because:`; // Use rule name in the header
-        mismatchHeader.style.color = 'red';
-        resultsDiv.appendChild(mismatchHeader);
+                    if (compareValues(alertValue, ruleValue, operator, dataType)) {
+                        results.matches.push({
+                            field: key,
+                            alertValue: alertValue,
+                            ruleValue: ruleValue
+                        });
+                    } else {
+                        let reason = alertData.hasOwnProperty(key) ?
+                            `expected ${ruleValue} but found ${alertValue}` :
+                            `expected ${ruleValue} but field not present in alert data`;
+                        results.mismatches.push({
+                            field: key,
+                            reason: reason
+                        });
+                    }
+                }
+            }
+            return results;
+        }
 
-        results.mismatches.forEach(mismatch => {
-            const mismatchPara = document.createElement('p');
-            mismatchPara.className = 'mismatch';
-            mismatchPara.innerHTML = `<strong>${mismatch.field}</strong>: ${mismatch.reason}`;
-            resultsDiv.appendChild(mismatchPara);
-        });
-    }
+        function compareValues(alertValue, ruleValue, operator, dataType) {
+            if (alertValue === undefined || ruleValue === undefined) {
+                return false;
+            }
+            if (dataType === 'number') {
+                alertValue = parseFloat(alertValue);
+                ruleValue = parseFloat(ruleValue);
+            }
+            switch (operator) {
+                case '=':
+                case '==':
+                    return alertValue == ruleValue;
+                case '<':
+                    return alertValue < ruleValue;
+                default:
+                    return false;
+            }
+        }
 
-    // Check for matches
-    if (results.matches.length > 0) {
-        const matchHeader = document.createElement('h3');
-        matchHeader.textContent = "Matches found:";
-        resultsDiv.appendChild(matchHeader);
+        function displayMatches(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
 
-        results.matches.forEach(match => {
-            const matchPara = document.createElement('p');
-            matchPara.className = 'match';
-            matchPara.innerHTML = `Match found: <strong>${match.field}</strong> - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
-            resultsDiv.appendChild(matchPara);
-        });
-    }
+            if (results.mismatches.length > 0) {
+                const mismatchHeader = document.createElement('h3');
+                mismatchHeader.textContent = "Suppression failed due to:";
+                mismatchHeader.style.color = 'red';
+                resultsDiv.appendChild(mismatchHeader);
 
-    if (results.matches.length === 0 && results.mismatches.length === 0) {
-        resultsDiv.textContent = 'No significant results to display.';
-    }
-}
+                results.mismatches.forEach(mismatch => {
+                    const mismatchPara = document.createElement('p');
+                    mismatchPara.className = 'mismatch';
+                    const fieldName = fieldMappings[mismatch.field] || mismatch.field;
+                    mismatchPara.innerHTML = `<strong>${fieldName}</strong>: ${mismatch.reason}`;
+                    resultsDiv.appendChild(mismatchPara);
+                });
+            }
 
+            if (results.matches.length > 0) {
+                const matchHeader = document.createElement('h3');
+                matchHeader.textContent = "Matches found:";
+                resultsDiv.appendChild(matchHeader);
 
-    // Header for Mismatches
-    if (results.mismatches.length > 0) {
-        const mismatchHeader = document.createElement('h3');
-        mismatchHeader.textContent = "Suppression failed due to:";
-        mismatchHeader.style.color = 'red';  // Optionally make the header red
-        resultsDiv.appendChild(mismatchHeader);
+                results.matches.forEach(match => {
+                    const matchPara = document.createElement('p');
+                    matchPara.className = 'match';
+                    const fieldName = fieldMappings[match.field] || match.field;
+                    matchPara.innerHTML = `Match found: <strong>${fieldName}</strong> - Alert Value: ${match.alertValue}, Rule Value: ${match.ruleValue}`;
+                    resultsDiv.appendChild(matchPara);
+                });
+            }
 
-        results.mismatches.forEach(mismatch => {
-            const mismatchPara = document.createElement('p');
-            mismatchPara.className = 'mismatch'; // Use the class for styling
-            mismatchPara.innerHTML = `<strong>${mismatch.field}</strong>: ${mismatch.reason}`;
-            resultsDiv.appendChild(mismatchPara);
-        });
-    } else if (results.matches.length === 0) {
-        resultsDiv.textContent = 'No matches found.';
-    }
-    </script>    
+            if (results.matches.length === 0 && results.mismatches.length === 0) {
+                resultsDiv.textContent = 'No significant results to display.';
+            }
+        }
+    </script>
 </body>
 </html>
